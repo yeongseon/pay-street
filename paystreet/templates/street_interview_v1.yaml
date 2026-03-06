@@ -1,0 +1,124 @@
+template_id: street_interview_v1
+version: "1.0"
+type: interview
+description: "Street interview style salary reveal content"
+
+video:
+  resolution:
+    width: 1080
+    height: 1920
+  fps: 30
+  duration:
+    min: 20
+    max: 40
+
+subtitle:
+  style: bottom_bold_caption
+  position: bottom
+  font_size: 52
+  font_weight: bold
+  highlight_salary: true
+  highlight_job_title: true
+  highlight_color: "#FFD700"
+  text_color: "#FFFFFF"
+  background_color: "rgba(0,0,0,0.7)"
+  padding: 16
+
+mosaic:
+  policy: silhouette_only
+  blur_radius: 0
+
+branding:
+  logo: assets/logos/paystreet_white.png
+  watermark_enabled: true
+  watermark_position: top_right
+  watermark_opacity: 0.8
+
+scenes:
+  - id: intro
+    type: intro
+    layout: intro_title_layout
+    duration:
+      min: 1.5
+      max: 2.5
+    layers:
+      - type: background
+        source: assets/backgrounds/default_bg.png
+      - type: overlay
+        source: assets/overlays/intro_card.png
+      - type: text
+        content: hook
+        style: hook_text
+
+  - id: question
+    type: question
+    layout: split_interview_layout
+    duration_mode: audio_driven
+    audio_padding: 0.3
+    layers:
+      - type: background
+        source: assets/backgrounds/default_bg.png
+      - type: character
+        source: assets/characters/interviewer.png
+        position: left
+      - type: overlay
+        source: assets/overlays/question_card.png
+      - type: subtitle
+        content: interviewer_line
+
+  - id: answer
+    type: answer
+    layout: split_interview_layout
+    duration_mode: audio_driven
+    audio_padding: 0.5
+    layers:
+      - type: background
+        source: assets/backgrounds/default_bg.png
+      - type: character
+        source: assets/silhouettes/interviewee_silhouette.png
+        position: right
+      - type: overlay
+        source: assets/overlays/answer_card.png
+      - type: subtitle
+        content: interviewee_line
+
+  - id: highlight
+    type: highlight
+    layout: salary_card_layout
+    duration:
+      min: 1.5
+      max: 3.0
+    layers:
+      - type: background
+        source: assets/backgrounds/default_bg.png
+      - type: overlay
+        source: assets/overlays/salary_card.png
+      - type: text
+        content: salary_range
+        style: salary_highlight_text
+
+  - id: outro
+    type: outro
+    layout: outro_cta_layout
+    duration:
+      min: 1.5
+      max: 2.5
+    layers:
+      - type: background
+        source: assets/backgrounds/default_bg.png
+      - type: overlay
+        source: assets/overlays/outro_card.png
+      - type: text
+        content: outro
+        style: cta_text
+      - type: branding
+        source: assets/logos/paystreet_white.png
+
+layer_render_order:
+  - background
+  - character
+  - mosaic
+  - overlay
+  - subtitle
+  - branding
+  - effects
