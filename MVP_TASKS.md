@@ -3,6 +3,7 @@
 ## 1. Foundation
 
 - Python 프로젝트 초기화
+- `.venv` 생성 및 활성화 규칙 문서화
 - `pyproject.toml` 설정
 - `.env.example` 작성
 - Docker Compose 또는 Podman Compose 구성

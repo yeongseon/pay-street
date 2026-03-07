@@ -6,6 +6,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 
+from paystreet.ai.tts import AudioResult
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from paystreet.ai.prompts import build_script_prompt
@@ -54,6 +55,12 @@ def _get_tts_provider(provider_name: str):
     from paystreet.ai.providers.mock_tts import MockTTSProvider
 
     return MockTTSProvider()
+
+
+def _audio_extension(provider_name: str) -> str:
+    if provider_name in {"openai", "elevenlabs"}:
+        return ".mp3"
+    return ".wav"
 
 
 class VideoPipeline:
@@ -134,23 +141,33 @@ class VideoPipeline:
         interviewer_texts = script_content.interviewer_lines
         interviewee_texts = script_content.interviewee_lines
 
-        audio_paths: dict[str, str] = {}
+        audio_results: dict[str, AudioResult] = {}
+        audio_ext = _audio_extension(tts.provider_name)
+
         for i, text in enumerate(interviewer_texts):
-            path = os.path.join(temp_dir, f"interviewer_{i}.wav")
-            _ = await tts.synthesize(text=text, output_path=path, voice="alloy")
-            audio_paths[f"interviewer_{i}"] = path
+            path = os.path.join(temp_dir, f"interviewer_{i}{audio_ext}")
+            result = await tts.synthesize(text=text, output_path=path, voice="alloy")
+            audio_results[f"interviewer_{i}"] = result
 
         for i, text in enumerate(interviewee_texts):
-            path = os.path.join(temp_dir, f"interviewee_{i}.wav")
-            _ = await tts.synthesize(text=text, output_path=path, voice="nova")
-            audio_paths[f"interviewee_{i}"] = path
+            path = os.path.join(temp_dir, f"interviewee_{i}{audio_ext}")
+            result = await tts.synthesize(text=text, output_path=path, voice="nova")
+            audio_results[f"interviewee_{i}"] = result
 
         audio_record = AudioJob(
             script_id=script_record.id,
             provider=tts.provider_name,
             status=STATUS_COMPLETED,
-            interviewer_path=audio_paths.get("interviewer_0"),
-            interviewee_path=audio_paths.get("interviewee_0"),
+            interviewer_path=(
+                audio_results["interviewer_0"].file_path
+                if "interviewer_0" in audio_results
+                else None
+            ),
+            interviewee_path=(
+                audio_results["interviewee_0"].file_path
+                if "interviewee_0" in audio_results
+                else None
+            ),
         )
         self._db.add(audio_record)
         await self._db.flush()
@@ -162,15 +179,19 @@ class VideoPipeline:
         for scene in plan.scenes:
             if (
                 scene.speaker == "interviewer"
-                and f"interviewer_{int_idx}" in audio_paths
+                and f"interviewer_{int_idx}" in audio_results
             ):
-                scene.audio_path = audio_paths[f"interviewer_{int_idx}"]
+                result = audio_results[f"interviewer_{int_idx}"]
+                scene.audio_path = result.file_path
+                scene.duration = result.duration_seconds
                 int_idx += 1
             elif (
                 scene.speaker == "interviewee"
-                and f"interviewee_{inv_idx}" in audio_paths
+                and f"interviewee_{inv_idx}" in audio_results
             ):
-                scene.audio_path = audio_paths[f"interviewee_{inv_idx}"]
+                result = audio_results[f"interviewee_{inv_idx}"]
+                scene.audio_path = result.file_path
+                scene.duration = result.duration_seconds
                 inv_idx += 1
 
         timeline = build_timeline(plan)

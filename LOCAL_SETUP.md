@@ -79,7 +79,63 @@ Local Storage
 
 ---
 
-## 5. Local Storage Layout
+## 5. Python Virtual Environment
+
+PayStreet의 개발 환경은 반드시 **virtualenv 기반**으로 구성한다.
+
+모든 Python 명령 실행 기준
+
+- 패키지 설치
+- 테스트 실행
+- Alembic 마이그레이션
+- seed script 실행
+- FastAPI 실행
+- Celery worker 실행
+
+모두 `.venv` 안에서 수행해야 한다.
+
+### Recommended Commands
+
+Linux / macOS
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .[dev]
+```
+
+PowerShell
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e .[dev]
+```
+
+### Execution Rule
+
+다음 형태로 실행하는 것을 기본 규칙으로 한다.
+
+```text
+.venv activated
+    ->
+python -m ...
+```
+
+예
+
+```bash
+python -m pytest
+python -m uvicorn paystreet.app.main:app --reload
+python -m alembic upgrade head
+python -m paystreet.scripts.seed_data
+```
+
+---
+
+## 6. Local Storage Layout
 
 로컬 스토리지는 파일 기반으로 운영한다.
 
@@ -104,7 +160,7 @@ paystreet/
 
 ---
 
-## 6. Container Runtime Strategy
+## 7. Container Runtime Strategy
 
 로컬 운영은 `Docker Compose` 기준으로 설계하는 것이 가장 단순하다.
 
@@ -131,7 +187,7 @@ paystreet/
 
 ---
 
-## 7. Vendor-neutral Principle
+## 8. Vendor-neutral Principle
 
 PayStreet는 이후 클라우드로 이동하더라도 벤더 락인이 없도록 설계한다.
 
@@ -169,7 +225,7 @@ Local Model Adapter
 
 ---
 
-## 8. Local Operations Model
+## 9. Local Operations Model
 
 로컬 운영 기준 기본 흐름은 다음과 같다.
 
@@ -185,7 +241,7 @@ Local Model Adapter
 
 ---
 
-## 9. Migration Path
+## 10. Migration Path
 
 로컬에서 시작한 뒤 다음 단계로 확장할 수 있다.
 
@@ -210,7 +266,7 @@ Local Model Adapter
 
 ---
 
-## 10. MVP Recommendation
+## 11. MVP Recommendation
 
 초기 MVP는 다음 구성이 가장 현실적이다.
 
@@ -219,13 +275,14 @@ Local Model Adapter
 - `Celery Worker` 로컬 실행
 - `PostgreSQL` 로컬 실행
 - `FFmpeg` 로컬 설치
+- `.venv` 활성화 상태에서 모든 Python 작업 실행
 - `outputs/`, `exports/` 폴더 기반 결과 저장
 
 이 구성만으로도 PayStreet의 데이터, 콘텐츠 생성, 영상 조립 파이프라인을 모두 테스트할 수 있다.
 
 ---
 
-## 11. Conclusion
+## 12. Conclusion
 
 PayStreet는 초기부터 클라우드 의존적으로 설계할 필요가 없다.
 

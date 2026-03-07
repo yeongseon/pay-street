@@ -13,20 +13,22 @@ async def is_duplicate(
     experience_years: int,
     region: str,
     company_size: str,
+    content_type: str | None = None,
+    title: str | None = None,
 ) -> bool:
     """Check if a topic with the same key dimensions already exists."""
-    stmt = (
-        select(ContentTopic)
-        .where(
-            and_(
-                ContentTopic.job_title == job_title,
-                ContentTopic.experience_years == experience_years,
-                ContentTopic.region == region,
-                ContentTopic.company_size == company_size,
-            )
-        )
-        .limit(1)
-    )
+    filters = [
+        ContentTopic.job_title == job_title,
+        ContentTopic.experience_years == experience_years,
+        ContentTopic.region == region,
+        ContentTopic.company_size == company_size,
+    ]
+    if content_type is not None:
+        filters.append(ContentTopic.content_type == content_type)
+    if title is not None:
+        filters.append(ContentTopic.title == title)
+
+    stmt = select(ContentTopic).where(and_(*filters)).limit(1)
     result = await db.execute(stmt)
     return result.scalar_one_or_none() is not None
 
@@ -39,6 +41,8 @@ async def deduplicate_topics(
     seen = set()
     for topic in topics:
         key = (
+            topic.content_type,
+            topic.title,
             topic.job_title,
             topic.experience_years,
             topic.region,
@@ -52,6 +56,8 @@ async def deduplicate_topics(
             topic.experience_years,
             topic.region,
             topic.company_size,
+            topic.content_type,
+            topic.title,
         )
         if not exists:
             unique.append(topic)

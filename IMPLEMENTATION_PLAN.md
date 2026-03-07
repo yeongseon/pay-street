@@ -40,6 +40,7 @@ MVP의 목표는 다음 한 줄로 요약된다.
 ### Phase 1. Foundation
 
 - Python 프로젝트 초기화
+- `.venv` 기반 개발 환경 구성
 - FastAPI 기본 서버 구성
 - PostgreSQL/Redis 연결
 - Docker Compose 또는 Podman Compose 로컬 실행 환경 구성

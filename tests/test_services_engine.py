@@ -38,6 +38,8 @@ def _make_topic(
 ):
     t = MagicMock(spec=ContentTopic)
     t.id = uuid.uuid4()
+    t.content_type = "salary_reveal"
+    t.title = f"{exp}yr {job_title} salary"
     t.job_title = job_title
     t.experience_years = exp
     t.region = region
@@ -111,6 +113,22 @@ async def test_deduplicate_topics_filters_in_batch_duplicates():
     result = await deduplicate_topics(db, [t1, t2])
 
     assert len(result) == 1
+
+
+@pytest.mark.asyncio
+async def test_deduplicate_topics_keeps_distinct_titles():
+    db = _make_db(scalar_one_or_none=None)
+
+    t1 = _make_topic("Backend Developer", 3, "Seoul", "mid")
+    t2 = _make_topic("Backend Developer", 3, "Seoul", "mid")
+    t1.title = "3년차 백엔드 개발자 연봉 얼마예요"
+    t2.title = "서울 백엔드 개발자 연봉 현실"
+    t1.content_type = "salary_reveal"
+    t2.content_type = "salary_reveal"
+
+    result = await deduplicate_topics(db, [t1, t2])
+
+    assert len(result) == 2
 
 
 @pytest.mark.asyncio

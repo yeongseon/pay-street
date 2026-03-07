@@ -33,7 +33,7 @@ class OpenAITTSProvider(BaseTTSProvider):
             input=text,
             response_format="mp3",
         )
-        response.stream_to_file(output_path)
+        await response.stream_to_file(output_path)
         duration = max(1.0, len(text) / CHARS_PER_SECOND)
         return AudioResult(
             file_path=output_path,

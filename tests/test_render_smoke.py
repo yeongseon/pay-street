@@ -300,6 +300,7 @@ class TestBuildFfmpegCommand:
     def test_command_with_audio_uses_filter_complex(self):
         mock_entry = MagicMock()
         mock_entry.audio_path = "/tmp/audio.wav"
+        mock_entry.start_time = 2.0
         cmd = _build_ffmpeg_command(
             bg_asset="/fake/bg.png",
             audio_entries=[mock_entry],
@@ -313,6 +314,7 @@ class TestBuildFfmpegCommand:
         assert "-filter_complex" in cmd
         assert "-c:a" in cmd
         assert "aac" in cmd
+        assert "adelay=2000|2000" in " ".join(cmd)
 
     def test_command_no_audio_uses_vf(self):
         cmd = _build_ffmpeg_command(
@@ -344,8 +346,22 @@ def test_render_video_calls_ffmpeg(tmp_path):
     subtitles = map_subtitles(timeline)
 
     template = {
-        "id": "street_interview_v1",
-        "resolution": {"width": 1080, "height": 1920},
+        "template_id": "street_interview_v1",
+        "video": {"resolution": {"width": 1080, "height": 1920}, "fps": 30},
+        "branding": {
+            "watermark_enabled": True,
+            "logo": "assets/logos/paystreet_white.png",
+        },
+        "scenes": [
+            {
+                "layers": [
+                    {
+                        "type": "background",
+                        "source": "assets/backgrounds/default_bg.png",
+                    }
+                ]
+            }
+        ],
     }
 
     with (
@@ -362,6 +378,12 @@ def test_render_video_calls_ffmpeg(tmp_path):
         bg_path = tmp_path / "backgrounds" / "default_bg.png"
         bg_path.parent.mkdir(parents=True, exist_ok=True)
         bg_path.write_bytes(b"fake png")
+        logo_path = tmp_path / "logos" / "paystreet_white.png"
+        logo_path.parent.mkdir(parents=True, exist_ok=True)
+        logo_path.write_bytes(b"fake logo")
+
+        srt_path = tmp_path / "subtitles.srt"
+        srt_path.write_text("1\n00:00:00,000 --> 00:00:01,000\nhello\n", encoding="utf-8")
 
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
@@ -369,7 +391,7 @@ def test_render_video_calls_ffmpeg(tmp_path):
             timeline=timeline,
             subtitles=subtitles,
             template=template,
-            srt_path=None,
+            srt_path=str(srt_path),
             job_id="test-job-001",
         )
 
@@ -378,6 +400,7 @@ def test_render_video_calls_ffmpeg(tmp_path):
     assert "ffmpeg" in ffmpeg_cmd[0]
     assert output_path.endswith(".mp4")
     assert "test-job-001" in output_path
+    assert "subtitles=" in " ".join(ffmpeg_cmd)
 
 
 def test_render_video_raises_on_ffmpeg_not_found(tmp_path):
