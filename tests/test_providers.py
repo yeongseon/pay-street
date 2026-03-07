@@ -40,7 +40,7 @@ async def test_openai_llm_provider_name():
         with patch("paystreet.ai.providers.openai_llm.AsyncOpenAI"):
             from paystreet.ai.providers.openai_llm import OpenAILLMProvider
 
-            provider = OpenAILLMProvider()
+            provider = OpenAILLMProvider(api_key="test-key")
             assert provider.provider_name == "openai"
 
 
@@ -63,7 +63,7 @@ async def test_openai_llm_generate_script_returns_script_content():
             import paystreet.ai.providers.openai_llm as mod
 
             reload(mod)
-            provider = mod.OpenAILLMProvider()
+            provider = mod.OpenAILLMProvider(api_key="test-key")
             provider._client = mock_client
 
             result = await provider.generate_script("write a salary script")
@@ -93,7 +93,7 @@ async def test_openai_llm_generate_script_calls_chat_completion():
             from importlib import reload
 
             reload(mod)
-            provider = mod.OpenAILLMProvider()
+            provider = mod.OpenAILLMProvider(api_key="test-key")
             provider._client = mock_client
 
             await provider.generate_script("test prompt")
@@ -125,7 +125,7 @@ async def test_openai_llm_uses_empty_string_when_content_none():
             from importlib import reload
 
             reload(mod)
-            provider = mod.OpenAILLMProvider()
+            provider = mod.OpenAILLMProvider(api_key="test-key")
             provider._client = mock_client
 
             with pytest.raises(ValueError):

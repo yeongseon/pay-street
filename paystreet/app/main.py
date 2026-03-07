@@ -38,6 +38,7 @@ app.add_middleware(
 )
 
 from paystreet.app.api.admin import router as admin_router
+from paystreet.app.api.api_keys import router as api_keys_router
 from paystreet.app.api.pipeline import router as pipeline_router
 from paystreet.app.api.salary import router as salary_router
 from paystreet.app.api.scripts import router as scripts_router
@@ -48,6 +49,7 @@ app.include_router(topics_router, prefix="/api/v1/topics", tags=["topics"])
 app.include_router(scripts_router, prefix="/api/v1/scripts", tags=["scripts"])
 app.include_router(pipeline_router, prefix="/api/v1/pipeline", tags=["pipeline"])
 app.include_router(admin_router, prefix="/api/v1/admin", tags=["admin"])
+app.include_router(api_keys_router, prefix="/api/v1/admin", tags=["admin"])
 
 
 @app.get("/health")

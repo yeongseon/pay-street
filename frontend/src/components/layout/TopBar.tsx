@@ -6,6 +6,7 @@ const pageTitles: Record<string, string> = {
   '/topics': 'Topics',
   '/pipeline': 'Pipeline',
   '/salary': 'Salary Data',
+  '/api-keys': 'API Keys',
 }
 
 export function TopBar() {

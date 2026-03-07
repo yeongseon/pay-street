@@ -51,17 +51,19 @@ async def test_mock_tts_provider_name():
 # ---------------------------------------------------------------------------
 
 
-def test_get_llm_provider_mock():
+@pytest.mark.asyncio
+async def test_get_llm_provider_mock():
     from paystreet.app.pipelines.video_pipeline import _get_llm_provider
 
-    provider = _get_llm_provider("mock")
+    provider = await _get_llm_provider("mock")
     assert isinstance(provider, MockLLMProvider)
 
 
-def test_get_llm_provider_unknown_falls_back_to_mock():
+@pytest.mark.asyncio
+async def test_get_llm_provider_unknown_falls_back_to_mock():
     from paystreet.app.pipelines.video_pipeline import _get_llm_provider
 
-    provider = _get_llm_provider("unknown_provider")
+    provider = await _get_llm_provider("unknown_provider")
     assert isinstance(provider, MockLLMProvider)
 
 
@@ -276,7 +278,7 @@ async def test_video_pipeline_uses_mock_providers_by_default(tmp_path):
         _get_tts_provider,
     )
 
-    llm = _get_llm_provider("mock")
+    llm = await _get_llm_provider("mock")
     tts = _get_tts_provider("mock")
 
     assert isinstance(llm, MockLLMProvider)

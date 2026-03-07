@@ -50,3 +50,18 @@ export const batchRunPipeline = (body: {
 export const getAdminJobs = () => api.get('/admin/jobs')
 
 export const getAdminMetrics = () => api.get('/admin/metrics')
+
+// --- API Key Management ---
+export const getApiKeys = () => api.get('/admin/api-keys')
+
+export const upsertApiKey = (body: {
+  provider: string
+  key_value: string
+  label?: string
+}) => api.put('/admin/api-keys', body)
+
+export const deleteApiKey = (provider: string) =>
+  api.delete(`/admin/api-keys/${provider}`)
+
+export const toggleApiKey = (provider: string) =>
+  api.patch(`/admin/api-keys/${provider}/toggle`)

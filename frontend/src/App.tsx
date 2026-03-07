@@ -5,7 +5,7 @@ import { Dashboard } from '@/pages/Dashboard'
 import { Topics } from '@/pages/Topics'
 import { Pipeline } from '@/pages/Pipeline'
 import { SalaryData } from '@/pages/SalaryData'
-
+import { ApiKeys } from '@/pages/ApiKeys'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -25,6 +25,7 @@ export default function App() {
             <Route path="/topics" element={<Topics />} />
             <Route path="/pipeline" element={<Pipeline />} />
             <Route path="/salary" element={<SalaryData />} />
+            <Route path="/api-keys" element={<ApiKeys />} />
           </Route>
         </Routes>
       </BrowserRouter>

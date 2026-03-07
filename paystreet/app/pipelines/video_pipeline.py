@@ -33,11 +33,11 @@ from paystreet.data.salary_repository import SalaryRepository
 logger = logging.getLogger(__name__)
 
 
-def _get_llm_provider(provider_name: str):
+async def _get_llm_provider(provider_name: str, db: AsyncSession | None = None):
     if provider_name == "openai":
         from paystreet.ai.providers.openai_llm import OpenAILLMProvider
 
-        return OpenAILLMProvider()
+        return await OpenAILLMProvider.create(db=db)
     from paystreet.ai.providers.mock_llm import MockLLMProvider
 
     return MockLLMProvider()
@@ -112,7 +112,7 @@ class VideoPipeline:
         self._db.add(topic)
         await self._db.flush()
 
-        llm = _get_llm_provider(self._settings.llm_provider)
+        llm = await _get_llm_provider(self._settings.llm_provider, db=self._db)
         prompt = build_script_prompt(
             job_title=job_title,
             experience_years=experience_years,

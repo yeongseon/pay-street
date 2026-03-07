@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, MessageSquare, Play, Database, Zap } from 'lucide-react'
+import { LayoutDashboard, MessageSquare, Play, Database, Zap, KeyRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -7,6 +7,7 @@ const navItems = [
   { to: '/topics', icon: MessageSquare, label: 'Topics' },
   { to: '/pipeline', icon: Play, label: 'Pipeline' },
   { to: '/salary', icon: Database, label: 'Salary Data' },
+  { to: '/api-keys', icon: KeyRound, label: 'API Keys' },
 ]
 
 export function Sidebar() {

@@ -456,3 +456,107 @@ def test_pipeline_run_missing_required_field(client):
     # experience_years is required
     resp = c.post("/api/v1/pipeline/run", json={"job_title": "DevOps"})
     assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# API Keys
+# ---------------------------------------------------------------------------
+
+
+def _make_api_key(provider="openai", key_value="sk-test1234567890", label="Test key", is_active=True):
+    k = MagicMock()
+    k.id = uuid.uuid4()
+    k.provider = provider
+    k.key_value = key_value
+    k.label = label
+    k.is_active = is_active
+    return k
+
+
+def test_list_api_keys_empty(client):
+    c, _ = client
+    resp = c.get("/api/v1/admin/api-keys")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+    assert body["data"] == []
+
+
+def test_list_api_keys_returns_masked():
+    keys = [_make_api_key(), _make_api_key(provider="elevenlabs", key_value="el-abcdefghij")]
+    db = _make_mock_db(scalars_list=keys)
+    with _patched_client(db) as (c, _):
+        resp = c.get("/api/v1/admin/api-keys")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["data"]) == 2
+    # Keys must be masked — raw value must not appear
+    for item in body["data"]:
+        assert "key_masked" in item
+        assert item["key_masked"] != item.get("key_value", "")
+        assert "sk-test" not in item["key_masked"]
+
+
+def test_upsert_api_key_creates_new():
+    new_key = _make_api_key()
+    db = _make_mock_db(scalar_one_or_none=None)
+    db.refresh = AsyncMock(side_effect=lambda obj: None)
+    with _patched_client(db) as (c, _):
+        resp = c.put(
+            "/api/v1/admin/api-keys",
+            json={"provider": "openai", "key_value": "sk-test1234567890", "label": "Test key"},
+        )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+
+
+def test_upsert_api_key_updates_existing():
+    existing = _make_api_key(key_value="sk-oldkey1234567")
+    db = _make_mock_db(scalar_one_or_none=existing)
+    db.refresh = AsyncMock(side_effect=lambda obj: None)
+    with _patched_client(db) as (c, _):
+        resp = c.put(
+            "/api/v1/admin/api-keys",
+            json={"provider": "openai", "key_value": "sk-newkey9876543", "label": "Updated"},
+        )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+
+
+def test_delete_api_key_success():
+    key = _make_api_key()
+    db = _make_mock_db(scalar_one_or_none=key)
+    db.delete = AsyncMock()
+    with _patched_client(db) as (c, _):
+        resp = c.delete("/api/v1/admin/api-keys/openai")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+    assert body["data"]["provider"] == "openai"
+
+
+def test_delete_api_key_not_found():
+    db = _make_mock_db(scalar_one_or_none=None)
+    with _patched_client(db) as (c, _):
+        resp = c.delete("/api/v1/admin/api-keys/openai")
+    assert resp.status_code == 404
+
+
+def test_toggle_api_key_success():
+    key = _make_api_key(is_active=True)
+    db = _make_mock_db(scalar_one_or_none=key)
+    db.refresh = AsyncMock(side_effect=lambda obj: None)
+    with _patched_client(db) as (c, _):
+        resp = c.patch("/api/v1/admin/api-keys/openai/toggle")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+
+
+def test_toggle_api_key_not_found():
+    db = _make_mock_db(scalar_one_or_none=None)
+    with _patched_client(db) as (c, _):
+        resp = c.patch("/api/v1/admin/api-keys/openai/toggle")
+    assert resp.status_code == 404
